@@ -1,0 +1,137 @@
+version: "3.9"
+services:
+  nginx:
+    build: ./requirements/nginx
+    image: nginx
+    container_name: nginx
+    restart: always
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    ports:
+      - "443:443"
+    networks:
+      - frontend
+    volumes:
+      - "${VOLUME_LOCATION}/wordpress:/srv/www/wordpress"
+    environment:
+      SERVER_NAME: ${WP_URL}
+
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress
+    container_name: wordpress
+    restart: always
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - "${VOLUME_LOCATION}/wordpress:/srv/www/wordpress"
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      WP_URL: ${WP_URL}
+      WP_TITLE: ${WP_TITLE}
+      WP_ADMIN_NAME: ${WP_ADMIN_NAME}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      PHP_FPM_LISTEN_MODE: ${PHP_FPM_LISTEN_MODE}
+      PHP_DISPLAY_ERRORS: ${PHP_DISPLAY_ERRORS}
+      PHP_DISPLAY_STARTUP_ERRORS: ${PHP_DISPLAY_STARTUP_ERRORS}
+      PHP_ERROR_REPORTING: ${PHP_ERROR_REPORTING}
+      PHP_CGI_FIX_PATHINFO: ${PHP_CGI_FIX_PATHINFO}
+      WP_REDIS_PORT: ${WP_REDIS_PORT}
+      WP_REDIS_TIMEOUT: ${WP_REDIS_TIMEOUT}
+      WP_REDIS_READ_TIMEOUT: ${WP_REDIS_READ_TIMEOUT}
+      WP_REDIS_DATABASE: ${WP_REDIS_DATABASE}
+
+    healthcheck:
+      test: netstat -aln | grep 9000 || exit 1
+      timeout: 60s
+      retries: 60
+      interval: 1s
+
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - "${VOLUME_LOCATION}/mariadb:/var/lib/mysql"
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 60s
+      retries: 60
+      interval: 1s
+
+  redis:
+    build: ./requirements/bonus/redis
+    image: redis
+    container_name: redis
+    restart: always
+    networks:
+      - backend
+    environment:
+      WP_REDIS_PORT: ${WP_REDIS_PORT}
+      WP_REDIS_TIMEOUT: ${WP_REDIS_TIMEOUT}
+      WP_REDIS_READ_TIMEOUT: ${WP_REDIS_READ_TIMEOUT}
+      WP_REDIS_DATABASE: ${WP_REDIS_DATABASE}
+    healthcheck:
+      test: netstat -aln | grep ${WP_REDIS_PORT} || exit 1
+      timeout: 60s
+      retries: 60
+      interval: 1s
+
+  vsftpd:
+    build: ./requirements/bonus/vsftpd
+    image: vsftpd
+    container_name: vsftpd
+    restart: always
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    volumes:
+      - "${VOLUME_LOCATION}/wordpress:/srv/www/wordpress"
+    ports:
+      - "21:21"
+      - "50000-50010:50000-50010"
+    environment:
+      FTP_USER: ${FTP_USER}
+      FTP_PASSWORD: ${FTP_PASSWORD}
+
+  adminer:
+    build: ./requirements/bonus/adminer
+    image: adminer
+    container_name: adminer
+    restart: always
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      wordpress:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - "${VOLUME_LOCATION}/wordpress:/srv/www/wordpress"
+    
+networks:
+  frontend:
+    driver: bridge
+    name: frontend
+  backend:
+    driver: bridge
+    name: backend
