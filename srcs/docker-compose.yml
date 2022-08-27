@@ -132,7 +132,7 @@ services:
       - frontend
       
   cadvisor:
-    build: ./requirements/bonus/cadviso
+    build: ./requirements/bonus/cadvisor
     container_name: cadvisor
     restart: always
     networks:
