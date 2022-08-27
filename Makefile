@@ -2,7 +2,7 @@ NAME=inception
 
 DOCKER_COMPOSE_YML=srcs/docker-compose.yml
 DOCKER_COMPOSE_FLAGS=-p $(NAME) -f $(DOCKER_COMPOSE_YML)
-VOLUMES_ROOT=./srcs/data
+VOLUMES_ROOT=/home/kangkim/data
 
 .PHONY: build
 build:
