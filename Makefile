@@ -18,7 +18,7 @@ down:
 
 .PHONY: clean
 clean: down
-	rm -rf $(VOLUMES_ROOT)
+	sudo rm -rf $(VOLUMES_ROOT)
 	docker system prune --all --force
 	docker system prune --volumes --force
 
