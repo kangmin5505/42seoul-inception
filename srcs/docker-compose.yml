@@ -3,6 +3,7 @@ services:
   nginx:
     build: ./requirements/nginx
     container_name: nginx
+    image: nginx
     restart: always
     depends_on:
       wordpress:
@@ -20,6 +21,7 @@ services:
 
   wordpress:
     build: ./requirements/wordpress
+    image: wordpress
     container_name: wordpress
     restart: always
     depends_on:
@@ -59,6 +61,7 @@ services:
 
   mariadb:
     build: ./requirements/mariadb
+    image: mariadb
     container_name: mariadb
     restart: always
     networks:
@@ -78,6 +81,7 @@ services:
 
   redis:
     build: ./requirements/bonus/redis
+    image: redis
     container_name: redis
     restart: always
     networks:
@@ -95,6 +99,7 @@ services:
 
   vsftpd:
     build: ./requirements/bonus/vsftpd
+    image: vsftpd
     container_name: vsftpd
     restart: always
     depends_on:
@@ -111,6 +116,7 @@ services:
 
   adminer:
     build: ./requirements/bonus/adminer
+    image: adminer
     container_name: adminer
     restart: always
     depends_on:
@@ -126,6 +132,7 @@ services:
   
   site:
     build: ./requirements/bonus/site
+    image: site
     container_name: site
     restart: always
     networks:
@@ -133,6 +140,7 @@ services:
       
   cadvisor:
     build: ./requirements/bonus/cadvisor
+    image: cadvisor
     container_name: cadvisor
     restart: always
     networks:
